@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Dress Up Doll</title>
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+  <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+
+  <style>
+  #tabs { 
+    width : 275px;
+    float: left;
+  }
+  #tabs li{ 
+    font-size : small;
+    float: left;
+  }
+  .button {
+    margin : 2px;
+  }
+  #canvas{ 
+    position : absolute;
+    left : 275px;
+  }
+  #canvas img{ 
+    position : absolute;
+    left : 0px;
+    top  : 0px;
+  }
+  </style>
+
+</head>
+<body>
+ 
+<div id="tabs">
+  <ul>
+  </ul>
+</div>
+
+<div id="canvas"> 
+
+</div>
+ 
+<canvas id="myCanvas" width="806" height="860" /> 
+ 
+ 
+ 
+ 
+ 
+<script>
+
+function LayerTab(tabName)
+{
+  this.Name = tabName;
+  this.Groups = [];
+
+  // Create the tab button
+  var item = $("<li>").appendTo($("#tabs ul"));
+  var tabButton = $("<a>").attr('href','#'+tabName).appendTo(item);
+  var span = $("<span>").appendTo(tabButton).text(tabName);
+
+  // Create the tab's div
+  this.Page = $("<div>").appendTo($("#tabs")).attr("id",tabName);  
+}
+
+// Creates a new group and returns the object.
+LayerTab.prototype.NewGroup = function(groupName) {
+  var group = new LayerGroup(groupName, this.Page);
+  this.Groups.push(group);
+  return group;
+}
+
+function LayerGroup(groupName, parent)
+{
+  this.LayerNames = [];
+  this.Name = groupName;
+  this.Layers = [];
+  this.OneAtATime = true;
+  this.VisibleLayer = undefined;
+
+  this.Div = $("<div>")
+               .appendTo(parent)
+               .css({'width': '100%',
+                     'border': '1px solid black'});
+}
+
+// layerStr = String used to select the html elements for this layer
+LayerGroup.prototype.AddLayer = function(layerStr, buttonHeight) {
+  // Create the image to show and hide. Referenced by alt attribute.
+  var img = $('<img>')
+    .appendTo($("#canvas"))
+    .hide()
+    .attr('width','700px')
+    .attr('src',layerStr+".png")
+    .attr('id',layerStr)
+    .attr('alt',layerStr);
+
+  this.LayerNames.push(layerStr);
+    
+  // Create the button in the gui page.
+  var self = this;
+  var id = layerStr;
+  var img = $("<img>")
+    .appendTo(this.Div)
+    .attr('class','button')
+    .attr('src',layerStr+'.png')
+    .attr('alt',layerStr+'Button')
+    .attr('height','100px')
+    .click(function(){self.ToggleLayer(id);});
+
+  if (buttonHeight) {
+    img.attr('src',layerStr+'Button.png')
+       .attr('height',buttonHeight+'px');
+  }  
+}
+
+LayerGroup.prototype.ChangeColor = function() {
+  for (var layerIdx = 0; layerIdx < this.LayerNames.length; ++layerIdx) {
+    var name = this.LayerNames[layerIdx];
+    var canvas = document.getElementById('myCanvas');
+    var context = canvas.getContext('2d');
+    var width = canvas.width;
+    var height = canvas.height;
+
+    var img=document.getElementById(name);
+    context.drawImage(img, 0, 0);
+    imageData = context.getImageData(0, 0, width, height);
+    pixelArray = imageData.data;
+    var idx = 0;
+    for (y = 0; y < height; ++y) {
+      for (x = 0; x < width; ++x) {
+        // swap red and green
+        var red = imageData[idx];
+        imageData[idx] = imageData[idx+1];
+        imageData[idx+1] = red;
+        idx += 4;
+      }
+    }
+    // create a new batch of pixels with the same
+    // dimensions as the image:
+    //imageData = context.createImageData(width, height)  
+    
+    c.putImageData(imageData, 0, 0);
+    // save canvas image as data url (png format by default)
+    var dataURL = canvas.toDataURL();
+    img.src = dataURL;   
+  }
+}
+  
+LayerGroup.prototype.ToggleLayer = function(layerStr) {
+  var layer = $("[alt="+layerStr+"]");
+  var layerButton = $("[alt="+layerStr+"Button]");
+
+  if (this.OneAtATime) {
+    if (this.VisibleLayer) {
+      var oldLayer = $("[alt="+this.VisibleLayer+"]");
+      var oldLayerButton = $("[alt="+this.VisibleLayer+"Button]");
+      oldLayer.hide();
+      oldLayerButton.css({'border': '1px solid white'});
+      if (this.VisibleLayer == layerStr) {
+        this.VisibleLayer = undefined;
+        return;
+      }
+    }
+    this.VisibleLayer = layerStr;
+    layer.show();
+    layerButton.css({'border': '1px solid blue'});
+    return;
+  }
+  
+  if ( layer.is(":visible") ) {
+    layer.hide();
+    layerButton.css({'border': '1px solid white'});
+  } else {
+    layer.show();
+    layerButton.css({'border': '1px solid blue'});
+  }
+}
+
+
+var HAIR_TAB = new LayerTab("Hair");
+var HAIR_GROUP = HAIR_TAB.NewGroup("BHair");
+HAIR_GROUP.AddLayer("BHair1", 60);
+HAIR_GROUP.AddLayer("BHair2", 40);
+HAIR_GROUP.AddLayer("BHair3", 40);
+HAIR_GROUP.AddLayer("BHair4", 60);
+HAIR_GROUP.AddLayer("BHair5", 60);
+HAIR_GROUP.AddLayer("BHair6", 60);
+HAIR_GROUP.AddLayer("BHair7", 70);
+HAIR_GROUP.AddLayer("BHair8", 50);
+HAIR_GROUP.AddLayer("BHair9", 60);
+HAIR_GROUP.AddLayer("BHair10", 60);
+HAIR_GROUP.AddLayer("BHair11", 40);
+HAIR_GROUP.AddLayer("BHair12", 60);
+
+$('<img src="BodyColor.png" alt="Skin" width="700"/>').appendTo($("#canvas"));
+$('<img src="BodyOutline.png" alt="Outline" width="700"/>').appendTo($("#canvas"));
+$('<img src="UnderPants.png" alt="UnderPants" width="700"/>').appendTo($("#canvas"));
+$('<img src="UnderShirt.png" alt="UnderShirt1" width="700"/>').appendTo($("#canvas"));
+
+var FACE_TAB = new LayerTab("Face");
+var EYEBROW_GROUP = FACE_TAB.NewGroup("Eyebrow");
+EYEBROW_GROUP.AddLayer("Eyebrow1", 40);
+EYEBROW_GROUP.AddLayer("Eyebrow2", 40);
+EYEBROW_GROUP.AddLayer("Eyebrow3", 40);
+EYEBROW_GROUP.AddLayer("Eyebrow4", 40);
+EYEBROW_GROUP.AddLayer("Eyebrow5", 40);
+EYEBROW_GROUP.ToggleLayer("Eyebrow1", 40);
+
+var EYE_TAB = new LayerTab("Eyes");
+var EYE_GROUP = EYE_TAB.NewGroup("Eye");
+EYE_GROUP.AddLayer("EyesAqua", 40);
+EYE_GROUP.AddLayer("EyesBlue", 40);
+EYE_GROUP.AddLayer("EyesBlack", 40);
+EYE_GROUP.AddLayer("EyesLightBlue", 40);
+EYE_GROUP.AddLayer("EyesGray", 38);
+EYE_GROUP.AddLayer("EyesGreen", 38);
+EYE_GROUP.AddLayer("EyesBrown", 38);
+EYE_GROUP.AddLayer("EyesDarkBrown", 40);
+EYE_GROUP.AddLayer("EyesPink", 40);
+EYE_GROUP.AddLayer("EyesPurple", 40);
+EYE_GROUP.AddLayer("EyesGreenBrown", 38);
+EYE_GROUP.AddLayer("EyesBlueBrown", 40);
+EYE_GROUP.ToggleLayer("EyesBrown", 40);
+
+
+var MOUTH_GROUP = FACE_TAB.NewGroup("Mouth");
+MOUTH_GROUP.AddLayer("Mouth1", 55);
+MOUTH_GROUP.AddLayer("Mouth2", 55);
+MOUTH_GROUP.AddLayer("Mouth3", 55);
+MOUTH_GROUP.AddLayer("Mouth4", 55);
+MOUTH_GROUP.AddLayer("Mouth5", 55);
+MOUTH_GROUP.AddLayer("Mouth6", 55);
+MOUTH_GROUP.AddLayer("Mouth7", 55);
+MOUTH_GROUP.AddLayer("Mouth8", 55);
+MOUTH_GROUP.AddLayer("Mouth9", 55);
+MOUTH_GROUP.AddLayer("Mouth10", 55);
+MOUTH_GROUP.ToggleLayer("Mouth1", 55);
+
+var NOSE_GROUP = FACE_TAB.NewGroup("Nose");
+NOSE_GROUP.AddLayer("Nose1", 55);
+NOSE_GROUP.AddLayer("Nose2", 55);
+NOSE_GROUP.AddLayer("Nose3", 55);
+NOSE_GROUP.AddLayer("Nose4", 55);
+NOSE_GROUP.AddLayer("Nose5", 55);
+NOSE_GROUP.AddLayer("Nose6", 55);
+NOSE_GROUP.ToggleLayer("Nose1", 55);
+
+var ATTRIBUTE_GROUP = FACE_TAB.NewGroup("Attribute");
+ATTRIBUTE_GROUP.OneAtATime = false;
+ATTRIBUTE_GROUP.AddLayer("Tears", 55);
+ATTRIBUTE_GROUP.AddLayer("Blushing", 55);
+ATTRIBUTE_GROUP.AddLayer("Flush", 55);
+ATTRIBUTE_GROUP.AddLayer("Freckles", 55);
+ATTRIBUTE_GROUP.AddLayer("LittleFreckles", 55);
+ATTRIBUTE_GROUP.AddLayer("Eyeshadow", 55);
+
+var BOTTOMS_TAB = new LayerTab("Bottoms");
+var PANTS_GROUP = BOTTOMS_TAB.NewGroup("Pants");
+PANTS_GROUP.OneAtATime = false;
+PANTS_GROUP.AddLayer("Pant1", 55);
+PANTS_GROUP.AddLayer("Pant2", 55);
+PANTS_GROUP.AddLayer("Pant3", 55);
+
+var SHOES_TAB = new LayerTab("Shoes");
+var SHOES_GROUP = SHOES_TAB.NewGroup("Shoes");
+SHOES_GROUP.AddLayer("Shoe7", 55);
+
+var SKIRTS_GROUP = BOTTOMS_TAB.NewGroup("Skirts");
+SKIRTS_GROUP.OneAtATime = false;
+SKIRTS_GROUP.AddLayer("Skirt1", 55);
+SKIRTS_GROUP.AddLayer("Skirt2", 55);
+SKIRTS_GROUP.AddLayer("Skirt3", 55);
+SKIRTS_GROUP.AddLayer("Skirt4", 55);
+SKIRTS_GROUP.AddLayer("Skirt5", 55);
+
+
+var TOPS_TAB = new LayerTab("Tops");
+var SHIRTS_GROUP = TOPS_TAB.NewGroup("Shirts");
+SHIRTS_GROUP.OneAtATime = false;
+SHIRTS_GROUP.AddLayer("Shirt1", 55);
+SHIRTS_GROUP.AddLayer("Shirt2", 55);
+SHIRTS_GROUP.AddLayer("Shirt3", 55);
+SHIRTS_GROUP.AddLayer("Shirt4", 55);
+SHIRTS_GROUP.AddLayer("Shirt5", 55);
+SHIRTS_GROUP.AddLayer("Shirt6", 55);
+
+var DRESSES_GROUP = TOPS_TAB.NewGroup("Dresses");
+DRESSES_GROUP.OneAtATime = false;
+DRESSES_GROUP.AddLayer("Dress1", 65);
+DRESSES_GROUP.AddLayer("Dress2", 65);
+DRESSES_GROUP.AddLayer("Dress3", 65);
+DRESSES_GROUP.AddLayer("Dress4", 65);
+DRESSES_GROUP.AddLayer("Dress5", 65);
+DRESSES_GROUP.AddLayer("Dress6", 65);
+DRESSES_GROUP.AddLayer("Dress7", 65);
+
+
+SHOES_GROUP.AddLayer("Shoe1", 55);
+SHOES_GROUP.AddLayer("Shoe2", 55);
+SHOES_GROUP.AddLayer("Shoe3", 55);
+SHOES_GROUP.AddLayer("Shoe4", 55);
+SHOES_GROUP.AddLayer("Shoe5", 55);
+SHOES_GROUP.AddLayer("Shoe6", 55);
+
+
+
+var ACCESSORIES_TAB = new LayerTab("Accessories");
+var ACCESSORIES_GROUP = ACCESSORIES_TAB.NewGroup("Accessories");
+ACCESSORIES_GROUP.OneAtATime = false;
+ACCESSORIES_GROUP.AddLayer("Accesory1", 55);
+ACCESSORIES_GROUP.AddLayer("Accesory2", 55);
+ACCESSORIES_GROUP.AddLayer("Accesory3", 55);
+ACCESSORIES_GROUP.AddLayer("Accesory4", 55);
+ACCESSORIES_GROUP.AddLayer("Accesory5", 55);
+ACCESSORIES_GROUP.AddLayer("Accesory6", 55);
+ACCESSORIES_GROUP.AddLayer("Accesory7", 55);
+ACCESSORIES_GROUP.AddLayer("Accesory8", 55);
+ACCESSORIES_GROUP.AddLayer("Accesory9", 55);
+ACCESSORIES_GROUP.AddLayer("Accesory10", 55);
+ACCESSORIES_GROUP.AddLayer("Accesory11", 55);
+ACCESSORIES_GROUP.AddLayer("Accesory12", 55);
+ACCESSORIES_GROUP.AddLayer("Accesory13", 55);
+
+
+var FHAIR_GROUP = HAIR_TAB.NewGroup("FHair");
+FHAIR_GROUP.OneAtATime = false;
+FHAIR_GROUP.AddLayer("FHair1", 55);
+FHAIR_GROUP.AddLayer("FHair2", 55);
+FHAIR_GROUP.AddLayer("FHair3", 55);
+FHAIR_GROUP.AddLayer("FHair4", 55);
+FHAIR_GROUP.AddLayer("FHair5", 55);
+FHAIR_GROUP.AddLayer("FHair6", 55);
+FHAIR_GROUP.AddLayer("FHair7", 55);
+FHAIR_GROUP.AddLayer("FHair8", 55);
+FHAIR_GROUP.AddLayer("FHair9", 55);
+FHAIR_GROUP.AddLayer("FHair10", 55);
+FHAIR_GROUP.AddLayer("FHair11", 55);
+FHAIR_GROUP.AddLayer("FHair12", 55);
+FHAIR_GROUP.AddLayer("SubtractHairline", 55);
+
+$( "#tabs" ).tabs();
+  
+  
+</script>
+ 
+</body>
+</html>
